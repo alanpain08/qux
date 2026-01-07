@@ -3,11 +3,19 @@ const cfg = require('../config');
 const { expectText, buildPost } = require('../utils');
 const ACTIONS = require('../actions');
 const moderation = require('../services/moderation');
+const startHandler = require('../handlers/start');
 
 const t = {
   title: '✏️ Введите заголовок:',
   desc: '📝 Введите описание:',
   contact: '📞 Укажите контакты:',
+};
+
+const handleStartCommand = async ctx => {
+  if (ctx.message?.text !== '/start') return false;
+  await ctx.scene.leave();
+  await startHandler(ctx);
+  return true;
 };
 
 module.exports = new Scenes.WizardScene(
@@ -22,6 +30,7 @@ module.exports = new Scenes.WizardScene(
 
   // Шаг 2 — принимаем и валидируем заголовок, спрашиваем описание
   async ctx => {
+    if (await handleStartCommand(ctx)) return;
     if (
       !(await expectText(ctx, {
         min: cfg.limits.titleMin,
@@ -39,6 +48,7 @@ module.exports = new Scenes.WizardScene(
 
   // Шаг 3 — принимаем и валидируем описание, спрашиваем контакты
   async ctx => {
+    if (await handleStartCommand(ctx)) return;
     if (
       !(await expectText(ctx, {
         min: cfg.limits.descMin,
@@ -56,6 +66,7 @@ module.exports = new Scenes.WizardScene(
 
   // Шаг 4 — принимаем контакты, показываем предпросмотр с кнопками
   async ctx => {
+    if (await handleStartCommand(ctx)) return;
     if (
       !(await expectText(ctx, {
         min: cfg.limits.contactMin,
@@ -85,6 +96,7 @@ module.exports = new Scenes.WizardScene(
 
   // Шаг 5 — обрабатываем кнопки
   async ctx => {
+    if (await handleStartCommand(ctx)) return;
     if (!ctx.callbackQuery) return;
     const action = ctx.callbackQuery.data;
     await ctx.answerCbQuery();
