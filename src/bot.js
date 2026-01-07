@@ -49,10 +49,12 @@ const User = require('./models/User');
   // 5) Commands & actions
   bot.start(startHandler);
 
-  bot.action([ACTIONS.JOB, ACTIONS.ORDER], ctx => {
-    ctx.answerCbQuery();
+  bot.action([ACTIONS.JOB, ACTIONS.ORDER], async ctx => {
+    await ctx.answerCbQuery();
     const postType = ctx.callbackQuery.data === ACTIONS.JOB ? '💼 Вакансия' : '🛍️ Заказ';
-    ctx.scene.enter('POST_SCENE', { postType });
+    if (!ctx.session) ctx.session = {};
+    ctx.session.postType = postType;
+    return ctx.scene.enter('POST_SCENE');
   });
 
   adminHandlers(bot);
