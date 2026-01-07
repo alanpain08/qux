@@ -8,9 +8,7 @@ module.exports = async ctx => {
     await ctx.scene.leave();
   }
 
-  if (ctx.session?.__scenes) {
-    delete ctx.session.__scenes;
-  }
+  ctx.session = null;
 
   ctx.replyWithHTML(
     `👋 Привет, <b>${ctx.from.first_name}</b>!\nВыберите тип объявления:`,
