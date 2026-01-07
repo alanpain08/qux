@@ -1,0 +1,11 @@
+services:
+  bot:
+    build:
+      context: .
+      target: dev # ← берём dev-стадию из Dockerfile
+    command: ['npm', 'run', 'dev'] # дублируем на всякий случай
+    volumes:
+      - ./:/app # монтируем исходники внутрь контейнера
+      - /app/node_modules # "скрываем" host-овую node_modules, используем контейнерную
+    environment:
+      NODE_ENV: development

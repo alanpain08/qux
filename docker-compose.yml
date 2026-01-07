@@ -1,0 +1,49 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    ports:
+      - '27017:27017' # опционально: чтобы подключаться с хоста
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ['CMD-SHELL', "mongosh --quiet --eval 'db.adminCommand({ ping: 1 })' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    command: ['redis-server', '--save', '60', '1', '--loglevel', 'warning']
+    ports:
+      - '6379:6379' # опционально: чтобы подключаться с хоста
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  bot:
+    build: .
+    container_name: bot
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./.env # твой .env с TOKEN и т.д.
+    environment:
+      # Переопределяем URL-ы под сеть compose: ходим к сервисам по их именам
+      MONGO_URI: mongodb://mongo:27017/ads-bot
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: production
+    # если хочешь видеть логи в консоли Docker Desktop — ничего больше не нужно
+
+volumes:
+  mongo-data:
+  redis-data:
