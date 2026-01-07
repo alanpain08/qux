@@ -1,14 +1,14 @@
 // Утилиты: проверка текстовых полей и сборка HTML-поста с экранированием.
 
 async function expectText(ctx, { min, max, emptyMsg, tooLongMsg }) {
-  const text = ctx.message?.text.trim();
+  const text = ctx.message?.text?.trim();
 
   if (!text || text.length < min) {
-    ctx.reply(emptyMsg);
+    await ctx.reply(emptyMsg);
     return false;
   }
   if (text.length > max) {
-    ctx.reply(tooLongMsg(text.length));
+    await ctx.reply(tooLongMsg(text.length));
     return false;
   }
   return true;

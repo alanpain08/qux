@@ -15,7 +15,6 @@ module.exports = new Scenes.WizardScene(
 
   // Шаг 1 — спрашиваем заголовок
   async ctx => {
-    console.log('-----------------1-----------------------', ctx);
     ctx.wizard.state.postType = ctx.scene.state.postType;
     await ctx.reply(t.title);
     return ctx.wizard.next();
@@ -23,14 +22,13 @@ module.exports = new Scenes.WizardScene(
 
   // Шаг 2 — принимаем и валидируем заголовок, спрашиваем описание
   async ctx => {
-    console.log('--------------------2-----------------', ctx);
     if (
-      !expectText(ctx, {
+      !(await expectText(ctx, {
         min: cfg.limits.titleMin,
         max: cfg.limits.titleMax,
         emptyMsg: `🔤 Введите заголовок (≥ ${cfg.limits.titleMin} симв.)`,
         tooLongMsg: len => `✂️ Заголовок ${len} симв. — максимум ${cfg.limits.titleMax}`,
-      })
+      }))
     )
       return; // остаёмся на том же шаге
 
@@ -41,14 +39,13 @@ module.exports = new Scenes.WizardScene(
 
   // Шаг 3 — принимаем и валидируем описание, спрашиваем контакты
   async ctx => {
-    console.log('---------------------3-----------------------------', ctx);
     if (
-      !expectText(ctx, {
+      !(await expectText(ctx, {
         min: cfg.limits.descMin,
         max: cfg.limits.descMax,
         emptyMsg: `📝 Введите описание (≥ ${cfg.limits.descMin} симв.)`,
         tooLongMsg: len => `✂️ Описание ${len} симв. — максимум ${cfg.limits.descMax}`,
-      })
+      }))
     )
       return;
 
@@ -59,14 +56,13 @@ module.exports = new Scenes.WizardScene(
 
   // Шаг 4 — принимаем контакты, показываем предпросмотр с кнопками
   async ctx => {
-    console.log('---------------------------4--------------------------------', ctx, ctx.message);
     if (
-      !expectText(ctx, {
+      !(await expectText(ctx, {
         min: cfg.limits.contactMin,
         max: cfg.limits.contactMax,
         emptyMsg: `📞 Укажите контакты`,
         tooLongMsg: len => `✂️ Контакты ${len} симв. — максимум ${cfg.limits.contactMax}`,
-      })
+      }))
     )
       return;
 
@@ -89,7 +85,6 @@ module.exports = new Scenes.WizardScene(
 
   // Шаг 5 — обрабатываем кнопки
   async ctx => {
-    console.log('---------------------------5--------------------------', ctx);
     if (!ctx.callbackQuery) return;
     const action = ctx.callbackQuery.data;
     await ctx.answerCbQuery();
