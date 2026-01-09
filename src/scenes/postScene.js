@@ -6,16 +6,19 @@ const moderation = require('../services/moderation');
 const startHandler = require('../handlers/start');
 
 const t = {
-  title: '✏️ Введите заголовок:',
-  desc: '📝 Введите описание:',
-  contact: '📞 Укажите контакты:',
+  title: `✏️ Введите заголовок:\n\n
+  <i>Например: Нужен впн</i>`,
+  desc: `✏️ Введите описание:\n\n
+  <i>Например: Необходимо создать впн на vless</i>`,
+  contact: `✏️ Укажите контакты:\n\n
+  <i>Например: tg: @example, телефон: 89998887766, email: example@mail.ru</i>`,
 };
 
 const editPrompts = {
-  [ACTIONS.EDIT_TYPE]: 'Укажите новый тип объявления:',
-  [ACTIONS.EDIT_TITLE]: 'Укажите новый заголовок:',
-  [ACTIONS.EDIT_DESC]: 'Укажите новое описание:',
-  [ACTIONS.EDIT_CONTACT]: 'Укажите новый номер:',
+  [ACTIONS.EDIT_TYPE]: '✏️ Укажите новый тип объявления:',
+  [ACTIONS.EDIT_TITLE]: '✏️ Укажите новый заголовок:',
+  [ACTIONS.EDIT_DESC]: '✏️ Укажите новое описание:',
+  [ACTIONS.EDIT_CONTACT]: '✏️ Укажите новый номер:',
 };
 
 const sendPreview = async ctx => {
@@ -26,8 +29,8 @@ const sendPreview = async ctx => {
     `✅ Проверьте объявление:\n\n${html}`,
     Markup.inlineKeyboard([
       [Markup.button.callback('✅ Отправить', ACTIONS.PUBLISH)],
-      [Markup.button.callback('❌ Отмена', ACTIONS.CANCEL)],
-      [Markup.button.callback('Изменить', ACTIONS.EDIT)],
+      [Markup.button.callback('🚫 Отмена', ACTIONS.CANCEL)],
+      [Markup.button.callback('📝 Изменить', ACTIONS.EDIT)],
     ]),
   );
 };
@@ -40,8 +43,8 @@ const handleStartCommand = async ctx => {
 };
 
 const handleCancelAction = async ctx => {
+  await ctx.reply('Отправка объявления отменена. Для создания нового отправьте команду /start');
   await ctx.scene.leave();
-  await startHandler(ctx);
 };
 
 module.exports = new Scenes.WizardScene(
@@ -50,7 +53,7 @@ module.exports = new Scenes.WizardScene(
   // Шаг 1 — спрашиваем заголовок
   async ctx => {
     ctx.wizard.state.postType = ctx.scene.state.postType;
-    await ctx.reply(t.title);
+    await ctx.replyWithHTML(t.title);
     return ctx.wizard.next();
   },
 
@@ -61,14 +64,15 @@ module.exports = new Scenes.WizardScene(
       !(await expectText(ctx, {
         min: cfg.limits.titleMin,
         max: cfg.limits.titleMax,
-        emptyMsg: `🔤 Введите заголовок (≥ ${cfg.limits.titleMin} симв.)`,
-        tooLongMsg: len => `✂️ Заголовок ${len} симв. — максимум ${cfg.limits.titleMax}`,
+        emptyMsg: `❗Пришлите заголовок`,
+        tooLongMsg: len =>
+          `❗Заголовок должен быть меньше ${cfg.limits.titleMax} символов. У вас на данный момент ${len}`,
       }))
     )
       return; // остаёмся на том же шаге
 
     ctx.wizard.state.title = ctx.message.text;
-    await ctx.reply(t.desc);
+    await ctx.replyWithHTML(t.desc);
     return ctx.wizard.next();
   },
 
@@ -79,14 +83,15 @@ module.exports = new Scenes.WizardScene(
       !(await expectText(ctx, {
         min: cfg.limits.descMin,
         max: cfg.limits.descMax,
-        emptyMsg: `📝 Введите описание (≥ ${cfg.limits.descMin} симв.)`,
-        tooLongMsg: len => `✂️ Описание ${len} симв. — максимум ${cfg.limits.descMax}`,
+        emptyMsg: `❗Пришлите описание`,
+        tooLongMsg: len =>
+          `❗Описание должно быть меньше ${cfg.limits.descMax} символов. У вас на данный момент ${len}`,
       }))
     )
       return;
 
     ctx.wizard.state.description = ctx.message.text;
-    await ctx.reply(t.contact);
+    await ctx.replyWithHTML(t.contact);
     return ctx.wizard.next();
   },
 
@@ -97,8 +102,9 @@ module.exports = new Scenes.WizardScene(
       !(await expectText(ctx, {
         min: cfg.limits.contactMin,
         max: cfg.limits.contactMax,
-        emptyMsg: `📞 Укажите контакты`,
-        tooLongMsg: len => `✂️ Контакты ${len} симв. — максимум ${cfg.limits.contactMax}`,
+        emptyMsg: `❗Укажите контакты`,
+        tooLongMsg: len =>
+          `❗Контакты должны быть меньше ${cfg.limits.contactMax} симв. У вас на данный момент ${len}`,
       }))
     )
       return;
@@ -123,7 +129,9 @@ module.exports = new Scenes.WizardScene(
     }
 
     if (action === ACTIONS.PUBLISH) {
-      await ctx.reply('⏳ Отправляю на модерацию…');
+      await ctx.reply(
+        '⏳… Отправляю на модерацию. Как только администратор проверит, ваше объявление будет опубликовано',
+      );
       await moderation.sendForReview(ctx, ctx.wizard.state.finalContent);
       return ctx.scene.leave();
     }
@@ -132,10 +140,14 @@ module.exports = new Scenes.WizardScene(
       await ctx.reply(
         'Что необходимо отредактировать?',
         Markup.inlineKeyboard([
-          [Markup.button.callback('Тип объявления', ACTIONS.EDIT_TYPE)],
-          [Markup.button.callback('Заголовок', ACTIONS.EDIT_TITLE)],
-          [Markup.button.callback('Описание', ACTIONS.EDIT_DESC)],
-          [Markup.button.callback('Телефон', ACTIONS.EDIT_CONTACT)],
+          [
+            Markup.button.callback('Тип объявления', ACTIONS.EDIT_TYPE),
+            Markup.button.callback('Заголовок', ACTIONS.EDIT_TITLE),
+          ],
+          [
+            Markup.button.callback('Описание', ACTIONS.EDIT_DESC),
+            Markup.button.callback('Телефон', ACTIONS.EDIT_CONTACT),
+          ],
         ]),
       );
       return;
@@ -143,7 +155,19 @@ module.exports = new Scenes.WizardScene(
 
     if (editPrompts[action]) {
       ctx.wizard.state.editField = action;
-      await ctx.reply(editPrompts[action]);
+      if (action === ACTIONS.EDIT_TYPE) {
+        await ctx.replyWithHTML(
+          editPrompts[action],
+          Markup.inlineKeyboard([
+            [
+              Markup.button.callback('Вакансия', ACTIONS.JOB),
+              Markup.button.callback('Заказ', ACTIONS.ORDER),
+            ],
+          ]),
+        );
+      } else {
+        await ctx.reply(editPrompts[action]);
+      }
       return ctx.wizard.next();
     }
   },
@@ -155,16 +179,8 @@ module.exports = new Scenes.WizardScene(
     if (!field) return;
 
     if (field === ACTIONS.EDIT_TYPE) {
-      if (
-        !(await expectText(ctx, {
-          min: 1,
-          max: 50,
-          emptyMsg: 'Укажите новый тип объявления:',
-          tooLongMsg: len => `✂️ Тип объявления ${len} симв. — максимум 50`,
-        }))
-      )
-        return;
-      ctx.wizard.state.postType = ctx.message.text;
+      await ctx.answerCbQuery();
+      ctx.wizard.state.postType = ctx.callbackQuery.data === ACTIONS.JOB ? 'Вакансия' : 'Заказ';
     }
 
     if (field === ACTIONS.EDIT_TITLE) {
@@ -172,8 +188,8 @@ module.exports = new Scenes.WizardScene(
         !(await expectText(ctx, {
           min: cfg.limits.titleMin,
           max: cfg.limits.titleMax,
-          emptyMsg: `🔤 Введите заголовок (≥ ${cfg.limits.titleMin} симв.)`,
-          tooLongMsg: len => `✂️ Заголовок ${len} симв. — максимум ${cfg.limits.titleMax}`,
+          emptyMsg: `❗Введите заголовок (≥ ${cfg.limits.titleMin} симв.)`,
+          tooLongMsg: len => `❗Заголовок ${len} симв. — максимум ${cfg.limits.titleMax}`,
         }))
       )
         return;
@@ -185,8 +201,8 @@ module.exports = new Scenes.WizardScene(
         !(await expectText(ctx, {
           min: cfg.limits.descMin,
           max: cfg.limits.descMax,
-          emptyMsg: `📝 Введите описание (≥ ${cfg.limits.descMin} симв.)`,
-          tooLongMsg: len => `✂️ Описание ${len} симв. — максимум ${cfg.limits.descMax}`,
+          emptyMsg: `❗Введите описание (≥ ${cfg.limits.descMin} симв.)`,
+          tooLongMsg: len => `❗Описание ${len} симв. — максимум ${cfg.limits.descMax}`,
         }))
       )
         return;
@@ -199,7 +215,7 @@ module.exports = new Scenes.WizardScene(
           min: cfg.limits.contactMin,
           max: cfg.limits.contactMax,
           emptyMsg: 'Укажите новый номер:',
-          tooLongMsg: len => `✂️ Контакты ${len} симв. — максимум ${cfg.limits.contactMax}`,
+          tooLongMsg: len => `❗Контакты ${len} симв. — максимум ${cfg.limits.contactMax}`,
         }))
       )
         return;

@@ -9,3 +9,5 @@ services:
       - /app/node_modules # "скрываем" host-овую node_modules, используем контейнерную
     environment:
       NODE_ENV: development
+      CHOKIDAR_USEPOLLING: '1' # фикс для Windows/WSL2: файловые события
+      WATCHPACK_POLLING: 'true'

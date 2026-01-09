@@ -21,14 +21,15 @@ function escape(text = '') {
 
 function buildPost({ postType, title, description, contacts }) {
   return `
-<b>${escape(postType)}</b>
-🔹 <b>${escape(title)}</b>
+  <b>⚡${escape(title)}</b>
+  
+  <b>Описание:</b>
+  ${escape(description)}
+  
+  <b>Контакты:</b>
+  ${escape(contacts)}
 
-📄 Описание:
-${escape(description)}
-
-📞 Контакты:
-${escape(contacts)}
+  #${escape(postType)}
   `.trim();
 }
 

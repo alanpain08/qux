@@ -51,10 +51,8 @@ const User = require('./models/User');
 
   bot.action([ACTIONS.JOB, ACTIONS.ORDER], async ctx => {
     await ctx.answerCbQuery();
-    const postType = ctx.callbackQuery.data === ACTIONS.JOB ? '💼 Вакансия' : '🛍️ Заказ';
-    if (!ctx.session) ctx.session = {};
-    ctx.session.postType = postType;
-    return ctx.scene.enter('POST_SCENE');
+    const postType = ctx.callbackQuery.data === ACTIONS.JOB ? 'Вакансия' : 'Заказ';
+    return ctx.scene.enter('POST_SCENE', { postType });
   });
 
   adminHandlers(bot);
