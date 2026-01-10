@@ -57,13 +57,29 @@ const User = require('./models/User');
 
   adminHandlers(bot);
 
-  // 6) Глобальный catcher
+  // 6) Bot command menu
+  try {
+    await bot.telegram.setMyCommands([{ command: 'start', description: 'Запуск бота' }]);
+    await bot.telegram.setMyCommands(
+      [
+        { command: 'start', description: 'Запуск бота' },
+        { command: 'stats', description: 'Статистика' },
+      ],
+      {
+        scope: { type: 'chat', chat_id: cfg.adminChatId },
+      },
+    );
+  } catch (e) {
+    logger.error({ err: e }, 'Failed to set bot commands');
+  }
+
+  // 7) Глобальный catcher
   bot.catch((err, ctx) => {
     logger.error({ err }, 'Unhandled error');
     ctx.reply('⚠️ Ошибка. Попробуйте позже.');
   });
 
-  // 7) Go
+  // 8) Go
   await bot.launch();
   logger.info('🤖 Bot started');
 })();
