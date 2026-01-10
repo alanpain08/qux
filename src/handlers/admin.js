@@ -77,8 +77,12 @@ module.exports = bot => {
         topPublisherLabel = `${username || 'Без имени'} (${topPublisherId})`;
       }
 
-      return ctx.reply(
-        `Всего пользователей: ${usersTotal}, Всего объявлений: ${approvedTotal}, Самое большое количество объявлений: ${topPublisherLabel}`,
+      return ctx.replyWithHTML(
+        [
+          `Пользователей: ${usersTotal}`,
+          `Объявлений: ${approvedTotal}`,
+          `🏆хашном чемпион: ${topPublisherLabel}`,
+        ].join('\n'),
       );
     } catch (e) {
       logger.error({ err: e }, 'Failed to load stats');

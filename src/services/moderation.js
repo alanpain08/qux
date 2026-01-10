@@ -7,7 +7,7 @@ const Post = require('../models/Post');
 const User = require('../models/User');
 const ACTIONS = require('../actions');
 const logger = require('../logger');
-const { adminChatId, groupId, threadId } = require('../config');
+const { adminChatId, groupId, threadId, botUrl } = require('../config');
 
 // Кнопки для админа с постфиксом postId в callback-data
 const adminKb = postId =>
@@ -61,6 +61,9 @@ async function approve(ctx, postId) {
     await ctx.telegram.sendMessage(groupId, post.content, {
       parse_mode: 'HTML',
       message_thread_id: threadId,
+      ...Markup.inlineKeyboard([
+        [Markup.button.url('➕ Добавить объявление', `https://t.me/${botUrl}`)],
+      ]),
     });
   } catch (e) {
     logger.error({ err: e }, 'Failed to publish to group');

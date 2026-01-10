@@ -9,12 +9,13 @@ const toNum = (name, def, { min = 0 } = {}) => {
 
 const getMs = (name, defSec) => toNum(name, defSec, { min: 1 }) * 1000;
 
-['TOKEN', 'ADMIN_CHAT_ID', 'GROUP_ID', 'THREAD_ID', 'MONGO_URI'].forEach(k => {
+['TOKEN', 'BOT_URL', 'ADMIN_CHAT_ID', 'GROUP_ID', 'THREAD_ID', 'MONGO_URI'].forEach(k => {
   if (!process.env[k]) throw new Error(`Env var ${k} is missing`);
 });
 
 module.exports = {
   token: process.env.TOKEN,
+  botUrl: process.env.BOT_URL,
   adminChatId: Number(process.env.ADMIN_CHAT_ID),
   groupId: Number(process.env.GROUP_ID),
   threadId: Number(process.env.THREAD_ID),
