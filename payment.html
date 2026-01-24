@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ПРОСТОР — Оплата</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-content">
+        <div class="logo">ПРОСТОР</div>
+        <nav class="header-nav">
+          <a href="index.html#search" class="nav-link">Поиск</a>
+          <a href="index.html#flights" class="nav-link">Рейсы</a>
+          <a href="#payment" class="nav-link">Оплата</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="payment-page" id="payment">
+      <section class="container">
+        <div class="section-header">
+          <h1>Оплата</h1>
+          <p>Спокойный процесс оформления без лишних шагов.</p>
+        </div>
+        <div class="payment-layout">
+          <form class="payment-form">
+            <div class="form-block">
+              <h2>Данные пассажира</h2>
+              <label>
+                Имя
+                <input type="text" placeholder="Алина" />
+              </label>
+              <label>
+                Фамилия
+                <input type="text" placeholder="Соловьева" />
+              </label>
+              <label>
+                Отчество
+                <input type="text" placeholder="Игоревна" />
+              </label>
+              <label>
+                Номер паспорта
+                <input type="text" placeholder="40 10 123456" />
+              </label>
+              <label>
+                Пол
+                <select>
+                  <option>Женский</option>
+                  <option>Мужской</option>
+                  <option>Другое</option>
+                </select>
+              </label>
+              <label>
+                Дата рождения
+                <input type="date" value="1993-05-22" />
+              </label>
+              <label>
+                Тариф
+                <input type="text" value="Эконом · Калининград → Москва" readonly />
+              </label>
+            </div>
+
+            <div class="form-block">
+              <h2>Оплата</h2>
+              <label>
+                Номер карты
+                <input type="text" placeholder="0000 0000 0000 0000" />
+              </label>
+              <div class="form-row">
+                <label>
+                  Срок действия
+                  <input type="text" placeholder="MM/YY" />
+                </label>
+                <label>
+                  CVV
+                  <input type="password" placeholder="***" />
+                </label>
+              </div>
+              <button class="primary-button" type="submit">Оплатить</button>
+            </div>
+          </form>
+
+          <aside class="boarding-pass">
+            <div class="boarding-pass-header">
+              <div>
+                <p class="caption">Посадочный талон</p>
+                <h2>MC21 204</h2>
+              </div>
+              <span class="chip">Seat 12A</span>
+            </div>
+            <div class="boarding-pass-body">
+              <div>
+                <p class="caption">Маршрут</p>
+                <p class="value">Калининград → Москва</p>
+              </div>
+              <div>
+                <p class="caption">Дата и время</p>
+                <p class="value">16 фев · 07:20</p>
+              </div>
+              <div>
+                <p class="caption">Пассажир</p>
+                <p class="value">Алина Соловьева</p>
+              </div>
+            </div>
+            <div class="qr-block" aria-label="QR код посадочного талона">
+              <div class="qr-grid"></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-content">
+        <span>ПРОСТОР · Надежная инфраструктура</span>
+        <a href="index.html">Вернуться к поиску</a>
+      </div>
+    </footer>
+  </body>
+</html>
