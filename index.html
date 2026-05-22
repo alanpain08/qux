@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>КРУГ — Твои люди. Твои круги.</title>
+  <style>
+    :root{--bg:#000;--panel:#101010;--panel2:#151515;--accent:#39FF14;--text:#fff;--muted:#A0A0A0;--line:#252525;--danger:#ff5353}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}
+    .app{display:flex;min-height:100vh}
+    .sidebar{width:250px;background:linear-gradient(180deg,#090909,#121212);border-right:1px solid var(--line);padding:20px;display:none}
+    .logo{display:flex;align-items:center;gap:10px;font-weight:800}.mark{width:34px;height:34px;border-radius:50%;border:3px solid var(--accent);box-shadow:0 0 20px #39ff1455;position:relative}
+    .mark:before,.mark:after{content:"";position:absolute;border:2px solid var(--accent);border-radius:50%;inset:-6px;clip-path:polygon(0 40%,100% 0,100% 60%,0 100%)} .mark:after{inset:-10px;opacity:.7}
+    .nav button{width:100%;margin:8px 0;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--panel);color:var(--text);cursor:pointer;text-align:left}
+    .nav button.active,.nav button:hover{border-color:#39ff1475;box-shadow:0 0 18px #39ff1422}
+    .content{flex:1;padding:16px 16px 82px}.screen{display:none;animation:f .25s}.screen.active{display:block}@keyframes f{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px}.btn{background:var(--accent);color:#021400;border:0;padding:11px 16px;border-radius:12px;font-weight:700;cursor:pointer}
+    .btn.secondary{background:transparent;color:var(--text);border:1px solid var(--line)} .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+    input,textarea,select{width:100%;padding:11px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);color:var(--text);margin:6px 0 10px}
+    .muted{color:var(--muted);font-size:14px}.tabs{display:flex;gap:8px;overflow:auto;padding-bottom:6px}.tab{white-space:nowrap;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:var(--panel2)}
+    .chip{padding:8px 10px;border-radius:999px;background:#11240d;border:1px solid #2a6120;color:#9cff83;cursor:pointer}
+    .post{border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:10px;background:var(--panel2)}
+    .mobilebar{position:fixed;bottom:0;left:0;right:0;background:#090909d9;backdrop-filter:blur(8px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:8px}
+    .mobilebar button{background:none;border:0;color:var(--muted)} .mobilebar button.active{color:var(--accent)} .hidden{display:none}
+    @media(min-width:960px){.sidebar{display:block}.content{padding:24px}.mobilebar{display:none}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="desktopNav"></aside>
+  <main class="content" id="content"></main>
+</div>
+<nav class="mobilebar" id="mobileNav"></nav>
+<script>
+const state={users:JSON.parse(localStorage.getItem('krug_users')||'[]'),usernameIndex:JSON.parse(localStorage.getItem('krug_idx')||'{}'),current:JSON.parse(localStorage.getItem('krug_current')||'null'),screen:'welcome',circles:[],posts:[],chats:[]};
+const sections=['chats','feed','circles','channels','profile'];
+function save(){localStorage.setItem('krug_users',JSON.stringify(state.users));localStorage.setItem('krug_idx',JSON.stringify(state.usernameIndex));localStorage.setItem('krug_current',JSON.stringify(state.current));}
+function appLogo(){return `<div class='logo'><span class='mark'></span><div><div>КРУГ</div><small class='muted'>Твои люди. Твои круги.</small></div></div>`}
+function nav(){const labels={chats:'Чаты',feed:'Лента',circles:'Круги',channels:'Каналы',profile:'Профиль'};desktopNav.innerHTML=appLogo()+`<div class='nav'>${sections.map(s=>`<button class='${state.screen===s?'active':''}' onclick="goto('${s}')">${labels[s]}</button>`).join('')}</div>`;mobileNav.innerHTML=sections.map(s=>`<button class='${state.screen===s?'active':''}' onclick="goto('${s}')">${labels[s]}</button>`).join('')}
+function goto(s){state.screen=s;render()}
+function checkPass(p){let score=0;if(p.length>=8)score++;if(/[A-ZА-Я]/.test(p))score++;if(/\d/.test(p))score++;if(/[^\w]/.test(p))score++;return score}
+function register(){const name=v('regName'),email=v('regEmail'),phone=v('regPhone');if(!name||!email||!phone)return;state.tmp={name,email,phone};goto('verify')}
+function verify(){goto('password')}
+function createPass(){const p=v('pass1'),p2=v('pass2');if(p!==p2||checkPass(p)<3)return;state.tmp.password_hash=btoa(p);goto('username')}
+function usernameCheck(u){return /^[a-zA-Z0-9_]{3,24}$/.test(u) && !state.usernameIndex[u]}
+function finish(){const u=v('username').replace('@','');if(!usernameCheck(u))return;const interests=[...document.querySelectorAll('input[name=i]:checked')].map(x=>x.value);const user={id:Date.now(),...state.tmp,username:u,interests,dob:v('dob')||'',bio:'',avatar:'',cover:'',email_verified:true,created_at:new Date().toISOString(),updated_at:new Date().toISOString()};state.users.push(user);state.usernameIndex[u]=user.id;state.current=user;save();state.circles=[];state.posts=[];state.chats=[];goto('feed')}
+function addPost(){const txt=v('newPost');if(!txt)return;state.posts.unshift({id:Date.now(),text:txt,author:state.current.name,circle:v('audience')||'Всем',time:'только что'});render()}
+function addCircle(){const name=v('circleName');if(!name)return;state.circles.push({id:Date.now(),name,type:v('circleType'),members:1,last:'Пусто'});goto('circles')}
+function sendMsg(){const t=v('msgInput');if(!t)return;state.chats[0].messages.push({me:true,text:t});vset('msgInput','');render()}
+function v(id){const e=document.getElementById(id);return e?e.value.trim():''} function vset(id,val){const e=document.getElementById(id);if(e)e.value=val}
+function render(){nav();const c=content;const user=state.current; if(!user){
+if(state.screen==='welcome')c.innerHTML=`<section class='screen active'><div class='card' style='max-width:480px;margin:6vh auto'>${appLogo()}<h1>КРУГ</h1><p class='muted'>Твои люди. Твои круги.</p><div class='row'><button class='btn' onclick="goto('signup')">Создать аккаунт</button><button class='btn secondary'>Войти</button></div></div></section>`;
+if(state.screen==='signup')c.innerHTML=`<div class='card' style='max-width:520px;margin:auto'><h2>Создание аккаунта</h2><input id='regName' placeholder='Имя'><input id='regEmail' placeholder='Почта'><input id='regPhone' placeholder='Ваш номер телефона'><input placeholder='Капча: 4+5=?'><button class='btn' onclick='register()'>Продолжить</button></div>`;
+if(state.screen==='verify')c.innerHTML=`<div class='card' style='max-width:520px;margin:auto'><h2>Подтверждение почты</h2><input placeholder='6-значный код'><div class='row'><button class='btn' onclick='verify()'>Подтвердить</button><button class='btn secondary'>Отправить код ещё раз</button></div></div>`;
+if(state.screen==='password')c.innerHTML=`<div class='card' style='max-width:520px;margin:auto'><h2>Создание пароля</h2><input id='pass1' type='password' placeholder='Пароль' oninput='document.getElementById("pwr").textContent=["слабый","средний","надёжный","надёжный"][Math.max(0,checkPass(this.value)-1)]||"слабый"'><input id='pass2' type='password' placeholder='Повторите пароль'><div class='muted'>Надёжность: <b id='pwr'>слабый</b></div><button class='btn' onclick='createPass()'>Создать пароль</button></div>`;
+if(state.screen==='username')c.innerHTML=`<div class='card' style='max-width:560px;margin:auto'><h2>Никнейм и интересы</h2><input id='username' placeholder='@nickname' oninput='const u=this.value.replace("@","");const ok=/^[a-zA-Z0-9_]{3,24}$/.test(u);document.getElementById("nameHint").innerHTML=!ok?"<span class=muted>Можно буквы, цифры и _</span>":(state.usernameIndex[u]?"<span style=color:var(--danger)>Этот никнейм уже в круге. Попробуй другой.</span>":"<span style=color:var(--accent)>✓ Никнейм свободен</span>")'><div id='nameHint' class='muted'>Можно использовать буквы, цифры и нижнее подчёркивание</div><input id='dob' type='date'><div class='muted'>Выбери интересы:</div><div class='row'>${['Авиация','Игры','Музыка','Спорт','IT','Путешествия'].map(i=>`<label class='chip'><input type='checkbox' name='i' value='${i}'/> ${i}</label>`).join('')}</div><button class='btn' onclick='finish()'>Завершить регистрацию</button></div>`;
+return;
+ }
+ // app pages empty first
+ if(state.screen==='feed')c.innerHTML=`<section class='screen active'><div class='card row between'><div>${appLogo()}</div><div class='row'><button class='btn secondary' onclick="goto('search')">Поиск</button><button class='btn' onclick="goto('createPost')">Создать пост</button></div></div><div class='tabs'>${['Все','Друзья','Круги','Каналы','Город','Близкие'].map(t=>`<span class='tab'>${t}</span>`).join('')}</div>${state.posts.length?state.posts.map(p=>`<div class='post'><b>${p.author}</b> <span class='muted'>@${user.username} · ${p.time} · ${p.circle}</span><p>${p.text}</p><div class='row'><span>❤️ 0</span><span>💬 0</span><span>↗</span><button class='btn secondary'>В круг</button></div></div>`).join(''):`<div class='card'>Здесь появятся публикации твоих людей.</div>`}</section>`;
+ if(state.screen==='createPost')c.innerHTML=`<div class='card'><h2>Создание поста</h2><textarea id='newPost' placeholder='Что у тебя нового?'></textarea><select id='audience'><option>Всем</option><option>Друзья — 42 человека</option><option>Близкие — 7 человек</option><option>Город — 12 403 человека</option><option>Семья</option><option>Класс</option></select><div class='row'><button class='btn' onclick='addPost()'>Опубликовать</button><button class='btn secondary' onclick="goto('feed')">Назад</button></div></div>`;
+ if(state.screen==='circles')c.innerHTML=`<div class='card row between'><h2>Круги</h2><button class='btn' onclick="goto('createCircle')">Создать круг</button></div>${state.circles.length?state.circles.map(x=>`<div class='card'><b>${x.name}</b><div class='muted'>${x.type} · ${x.members} участников</div><div class='row'><button class='btn secondary' onclick="goto('circlePage')">Войти</button></div></div>`).join(''):`<div class='card'>Создай свой первый круг и добавь туда людей.</div>`}`;
+ if(state.screen==='createCircle')c.innerHTML=`<div class='card'><h2>Создание круга</h2><input id='circleName' placeholder='Название круга'><textarea placeholder='Описание'></textarea><select id='circleType'><option>Открытый</option><option>Закрытый</option><option>Приватный</option></select><button class='btn' onclick='addCircle()'>Создать круг</button></div>`;
+ if(state.screen==='chats'){if(!state.chats.length)state.chats=[{id:1,title:'Иван Петров',protected:true,messages:[{me:false,text:'Привет! Это защищённый чат.'}]}];c.innerHTML=`<div class='card row between'><h2>Чаты</h2><button class='btn secondary' onclick="goto('protectedChat')">Открыть защищённый чат</button></div><div class='card'>Пока тихо. Начни первый диалог.</div>`}
+ if(state.screen==='protectedChat'){const chat=state.chats[0];c.innerHTML=`<div class='card'><div class='row between'><div><b>🔒 ${chat.title}</b><div class='muted'>Защищённый режим включён · Сообщения доступны только участникам чата</div></div><div class='row'><button class='btn secondary'>📞</button><button class='btn secondary'>⚙</button></div></div><div class='card' style='max-height:300px;overflow:auto'>${chat.messages.map(m=>`<div style='text-align:${m.me?'right':'left'}'><span class='tab'>${m.text}</span></div>`).join('')}</div><div class='muted'>🔒 Защищённый режим активен</div><div class='row'><input id='msgInput' placeholder='Сообщение…'><button class='btn' onclick='sendMsg()'>Отправить</button></div></div>`}
+ if(state.screen==='channels')c.innerHTML=`<div class='card'><h2>Каналы</h2><div class='post'><b>@tech_krug</b><p class='muted'>Новости технологий</p><button class='btn'>Подписаться</button></div></div>`;
+ if(state.screen==='profile')c.innerHTML=`<div class='card'><h2>${user.name}</h2><div class='muted'>@${user.username}</div><p>Интересы: ${user.interests.join(', ')||'—'}</p><button class='btn secondary' onclick="goto('settings')">Изменить данные аккаунта</button></div>`;
+ if(state.screen==='settings')c.innerHTML=`<div class='card'><h2>Настройки профиля</h2><input id='setName' value='${user.name}'><input id='setDob' type='date' value='${user.dob||''}'><input id='setBio' placeholder='О себе' value='${user.bio||''}'><button class='btn' onclick='state.current.name=v("setName");state.current.dob=v("setDob");state.current.bio=v("setBio");const i=state.users.findIndex(x=>x.id===state.current.id);state.users[i]=state.current;save();goto("profile")'>Сохранить</button></div>`;
+ if(state.screen==='search')c.innerHTML=`<div class='card'><h2>Глобальный поиск</h2><input id='q' placeholder='Поиск по @нику' oninput='const q=this.value.toLowerCase().replace("@","");document.getElementById("res").innerHTML=state.users.filter(u=>u.username.toLowerCase().includes(q)).map(u=>`<div class="post"><b>${u.name}</b> <span class="muted">@${u.username}</span></div>`).join("")'><div id='res' class='muted'>Люди · Круги · Каналы · Посты · Сообщения</div></div>`;
+ if(state.screen==='circlePage')c.innerHTML=`<div class='card'><h2>Страница круга</h2><p class='muted'>Лента · Фото · Файлы · Участники · Настройки</p></div>`;
+ if(state.screen==='notifications')c.innerHTML=`<div class='card'><h2>Уведомления</h2><div class='muted'>Пока уведомлений нет.</div></div>`;
+}
+state.screen=state.current?'feed':'welcome';render();
+</script>
+</body></html>
